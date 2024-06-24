@@ -1,0 +1,10 @@
+const displayCurrency = (num: number) => {
+  const formatter = new Intl.NumberFormat('en-BD', {
+    style: 'currency',
+    currency: 'BDT',
+    minimumFractionDigits: 2,
+  });
+  return formatter.format(num);
+};
+
+export default displayCurrency;
