@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import { UserRequest } from '../types/user';
+import addToCartModel from '../models/product.model';
 
 async function userSignUp(req: Request, res: Response) {
   try {
@@ -155,4 +156,71 @@ async function updateUser(req: Request, res: Response) {
   }
 }
 
-export { userSignUp, loginUser, userDetails, logoutUser, allUsers, updateUser };
+async function addToCart(req: UserRequest, res: Response) {
+  try {
+    const { productId } = req?.body;
+    const currentUser = req.user;
+    const isProductAvailable = await addToCartModel.findOne({ productId });
+
+    if (isProductAvailable) {
+      return res.json({
+        message: 'Already exist in your cart',
+        success: true,
+        error: false,
+      });
+    }
+
+    const payload = {
+      productId: productId,
+      quantity: 1,
+      userId: currentUser,
+    };
+
+    const newAddToCart = new addToCartModel(payload);
+    const saveProduct = await newAddToCart.save();
+    return res.json({
+      data: saveProduct,
+      message: 'Product Added',
+      success: true,
+      error: false,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      message: error.message,
+      error: true,
+    });
+  }
+}
+
+async function cartCounter(req: UserRequest, res: Response) {
+  try {
+    const userId = req.user;
+    const count = await addToCartModel.countDocuments({ userId });
+
+    res.json({
+      data: {
+        count,
+      },
+      message: 'ok',
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    res.json({
+      message: error.message,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export {
+  userSignUp,
+  loginUser,
+  userDetails,
+  logoutUser,
+  allUsers,
+  updateUser,
+  addToCart,
+  cartCounter,
+};
